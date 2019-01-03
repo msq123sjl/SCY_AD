@@ -1,0 +1,129 @@
+C51 COMPILER V9.52.0.0   LTC1864                                                           01/03/2019 08:50:41 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE LTC1864
+OBJECT MODULE PLACED IN .\output\LTC1864.obj
+COMPILER INVOKED BY: d:\Keil\C51\BIN\C51.EXE source\LTC1864.C BROWSE DEBUG OBJECTEXTEND PRINT(.\LTC1864.lst) TABS(2) OBJ
+                    -ECT(.\output\LTC1864.obj)
+
+line level    source
+
+   1          #include "STC15F2K60S2.H"
+   2          #include "LTC1864.H" 
+   3          #include "delay.h"
+   4          sbit AD_SDO = P3^4;
+   5          sbit AD_SCK = P3^3;
+   6          sbit AD_CONV = P3^2;
+   7          sbit AD_A0 = P3^5;
+   8          sbit AD_A1 = P3^6;
+   9          sbit AD_A2 = P3^7;
+  10          
+  11          #define N   41        //中值法采样点个数
+  12          //xdata float real_data=0;
+  13          xdata uchar a1,a2,a3; //主函数调用  
+  14          xdata uint buff[N],vtemp1,voltage;
+  15          
+  16          //xdata float buff[N],vtemp1,voltage;
+  17          float k1=0,k2=0,k3=0;
+  18          
+  19          void LTC1864_init()
+  20          {
+  21   1        AD_CONV=1;
+  22   1        AD_SCK=1;
+  23   1        delay1us(1);   //误差 -0.095775462963us
+  24   1      
+  25   1      } 
+  26          
+  27          
+  28          
+  29          uint LTC1864_Read(uchar channel)  //0-7
+  30          {
+  31   1        uint AD_data=0;
+  32   1        uchar i=0;
+  33   1      
+  34   1        AD_A0=channel&0x01;
+  35   1        AD_A1=(channel&0x02)>>1;
+  36   1        AD_A2=(channel&0x04)>>2;
+  37   1        Delay10ms();            
+  38   1        Delay10ms();            
+  39   1        Delay10ms();            
+  40   1        Delay10ms();            
+  41   1        Delay10ms();            
+  42   1        for(a1=0;a1<N;a1++)   //一次采集N个数据放入数组中
+  43   1        {
+  44   2          LTC1864_init(); 
+  45   2          AD_CONV=0;
+  46   2          for(i=0; i<16; i++)   
+  47   2           { 
+  48   3            AD_SCK=0; 
+  49   3            AD_SCK=1;
+  50   3            delay1us(1);            //  keep level for 1 us
+  51   3            AD_data=(AD_data<<1)|AD_SDO;  
+  52   3           }
+  53   2          delay1us(1);
+  54   2          //real_data=(float)(AD_data)/65535*5  ;
+C51 COMPILER V9.52.0.0   LTC1864                                                           01/03/2019 08:50:41 PAGE 2   
+
+  55   2          //buff[a1] =real_data;
+  56   2          buff[a1] = AD_data;
+  57   2        }
+  58   1        for(a2=0;a2<N-1;a2++)    //采样值由小到大排列
+  59   1        {
+  60   2          for(a3=0;a3<N-a2-1;a3++)
+  61   2          {
+  62   3            if(buff[a3]>buff[a3+1])
+  63   3            {
+  64   4              vtemp1=buff[a3];
+  65   4              buff[a3]=buff[a3+1];
+  66   4              buff[a3+1]=vtemp1;
+  67   4            }
+  68   3          }   
+  69   2        
+  70   2        }
+  71   1        voltage = (buff[(N-1)/2-3]>>3) + (buff[(N-1)/2-2]>>3) \
+  72   1            + (buff[(N-1)/2-1]>>3) + (buff[(N-1)/2]>>3)\
+  73   1            + (buff[(N-1)/2+1]>>3) + (buff[(N-1)/2+2]>>3)\
+  74   1            + (buff[(N-1)/2+3]>>3) + (buff[(N-1)/2+4]>>3);
+  75   1      
+  76   1      ////////////////01-4.99899//////////////////////
+  77   1        /*if(voltage<=0.0055)voltage=0;
+  78   1        k1=1.0005;             //对比2V得来
+  79   1        if(voltage>0.0055)voltage*=k1;
+  80   1        k2=0.0005;           //2V以下修正系数
+  81   1        if(voltage<2&&voltage>0.0055*k1)voltage=voltage+(2-voltage)*k2;
+  82   1        k3=0.0006;             //2V以上修正系数
+  83   1        if(voltage>2&&voltage<(voltage+k3*(voltage-2)))voltage=voltage-(voltage-2)*k3;
+  84   1        if(voltage>5)voltage=5;*/
+  85   1      
+  86   1      
+  87   1      
+  88   1        
+  89   1      //  if(voltage<=0.0055)voltage=0;
+  90   1      //  if(voltage>0)voltage+=0.001;
+  91   1      ////  if(voltage>5)voltage=voltage-0.002;
+  92   1      ////  if(voltage<5.001)voltage=voltage*0.998216;
+  93   1      //  if(voltage>5)voltage=5;
+  94   1      
+  95   1        AD_CONV=1;
+  96   1        return voltage;
+  97   1      }
+  98          
+  99          
+ 100          
+ 101          
+ 102          
+ 103          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    505    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     89    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     12       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

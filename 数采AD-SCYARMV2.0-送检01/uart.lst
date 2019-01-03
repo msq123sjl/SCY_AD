@@ -1,0 +1,142 @@
+C51 COMPILER V9.52.0.0   UART                                                              01/03/2019 08:50:42 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE UART
+OBJECT MODULE PLACED IN .\output\uart.obj
+COMPILER INVOKED BY: d:\Keil\C51\BIN\C51.EXE source\uart.c BROWSE DEBUG OBJECTEXTEND PRINT(.\uart.lst) TABS(2) OBJECT(.\
+                    -output\uart.obj)
+
+line level    source
+
+   1          #include "STC15F2K60S2.H"
+   2          
+   3          #include "uart.h"
+   4          
+   5          //#define FOSC 22118400L  // <  晶振
+   6          #define FOSC 11059200L  // <  晶振
+   7          #define BAUD1 9600    // < 波特率
+   8          #define S2RI  0X01
+   9          #define S2TI  0X02
+  10          #define S3RI  0X01
+  11          #define S3TI  0X02
+  12          #define S4RI  0X01
+  13          #define S4TI  0X02
+  14          
+  15          #define Timer2_Reload (65536UL -(FOSC / 4 / BAUD1))   //Timer 2 重装值， 对应300KHZ
+  16          typedef   unsigned char u8;
+  17          typedef   unsigned int  u16;
+  18          typedef   unsigned long u32;
+  19          
+  20          bit uart1_sendok_flg=0;
+  21          unsigned char receivedbuf[20];
+  22          static unsigned int index=0;
+  23          
+  24          //void clear_buf_uart1()
+  25          //{
+  26          //    xdata unsigned int i = 0 ,c ;
+  27          //    c = 20 ;
+  28          //    ES = 0 ;
+  29          //    for( i = 0 ; i < c ; i ++)
+  30          //    {
+  31          //    receivedbuf[i] = 0x00 ;
+  32          //    }
+  33          //
+  34          //    index = 0 ;
+  35          //
+  36          //    ES = 1 ;
+  37          //}
+  38          //
+  39          
+  40          
+  41          
+  42          /*初始化串口1*/
+  43          void init_uart1()
+  44          {
+  45   1        SCON  |= 0X50;
+  46   1        T2H = (u8)(Timer2_Reload >> 8);
+  47   1        T2L = (u8)Timer2_Reload;
+  48   1        AUXR|=0X15;
+  49   1        ES    = 1;                    //允许串口1中断 
+  50   1          EA = 1 ;
+  51   1      }
+  52          
+  53          
+  54          
+C51 COMPILER V9.52.0.0   UART                                                              01/03/2019 08:50:42 PAGE 2   
+
+  55          void send_data_uart1(unsigned char word)
+  56          {
+  57   1        ES=0;
+  58   1          SBUF = word ;
+  59   1          while(!TI);
+  60   1          TI = 0 ;
+  61   1        ES=1;
+  62   1      }
+  63          
+  64          void send_string_uart1(unsigned char * S)
+  65          {
+  66   1          while(*S)
+  67   1          {
+  68   2              send_data_uart1(*S++);
+  69   2          }
+  70   1      }
+  71          
+  72          
+  73          //void send_buf_uart1(unsigned char buf[] , unsigned int len)
+  74          //{
+  75          //  unsigned int i ;
+  76          //    //ES=0;
+  77          //    for(i=0;i<len;i++)
+  78          //        send_data_uart1(buf[i]);
+  79          //  //ES=1;
+  80          //}
+  81          
+  82          
+  83          //串口接收
+  84          void Uart1() interrupt 4 using 1      
+  85          {
+  86   1          if(RI)
+  87   1          {
+  88   2          if(uart1_sendok_flg==0)
+  89   2          {
+  90   3            if(SBUF=='#')index=0;
+  91   3            receivedbuf[index]=SBUF;
+  92   3            if((index>1)&&(receivedbuf[index]==0x0A))
+  93   3            {
+  94   4              uart1_sendok_flg=1;
+  95   4            }
+  96   3            else
+  97   3            {
+  98   4              if(index>=19)index=0;
+  99   4              index++;
+ 100   4            }
+ 101   3          }
+ 102   2      
+ 103   2            RI=0;
+ 104   2      
+ 105   2          }
+ 106   1        if(TI)
+ 107   1          {
+ 108   2            TI=0;
+ 109   2        }
+ 110   1      
+ 111   1      }
+ 112          
+ 113          
+ 114          
+
+
+C51 COMPILER V9.52.0.0   UART                                                              01/03/2019 08:50:42 PAGE 3   
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    158    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     22       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

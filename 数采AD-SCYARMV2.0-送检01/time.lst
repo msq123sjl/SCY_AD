@@ -1,0 +1,108 @@
+C51 COMPILER V9.52.0.0   TIME                                                              01/03/2019 08:50:41 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE TIME
+OBJECT MODULE PLACED IN .\output\time.obj
+COMPILER INVOKED BY: d:\Keil\C51\BIN\C51.EXE source\time.c BROWSE DEBUG OBJECTEXTEND PRINT(.\time.lst) TABS(2) OBJECT(.\
+                    -output\time.obj)
+
+line level    source
+
+   1          #include "STC15F2K60S2.H"
+   2          #include "time.h"
+   3          #include "STC15_SPI.h"
+   4          #include "LTC1864.H" 
+   5          bit Flag_safe=0;   //=1咬   =0不咬
+   6          bit dog_state=1;   //=0咬之前 =咬之后
+   7          xdata unsigned long int timecount=0;
+   8          xdata unsigned long int timecount1=0;
+   9          xdata unsigned int  io_press_timer;
+  10          xdata unsigned char Trg,Continuous;  
+  11          
+  12          xdata uint count_spi=0;
+  13          
+  14          
+  15          void Timer1Init(void)   //20毫秒@11.0592MHz
+  16          {
+  17   1        AUXR&=0xBF;     //  12分频
+  18   1        TMOD &= 0x0F;       //设置定时器模式
+  19   1        TL1 = 0x00;       //设置定时初值
+  20   1        TH1 = 0xB8;       //设置定时初值
+  21   1        TF1 = 0;        //清除TF1标志
+  22   1        TR1 = 1;        //定时器1开始计时
+  23   1        ET1=1;          //开启定时器中断1
+  24   1        EA=1;
+  25   1      }
+  26          
+  27          void IO_Read( void )  
+  28          {   
+  29   1        xdata unsigned char ReadData,io_temp; 
+  30   1        io_temp=P5|0xdf;
+  31   1        ReadData = io_temp^0xFF;   // 1      
+  32   1        Trg = ReadData & (ReadData ^ Continuous);      // 2      
+  33   1        Continuous = ReadData;                                // 3  
+  34   1      }  
+  35          
+  36          void Timer1Interrupt(void) interrupt 3
+  37          {
+  38   1        ET1=0;
+  39   1        TR1=0;
+  40   1        IO_Read();
+  41   1        if(Trg) io_press_timer=1;
+  42   1        if(Continuous&&io_press_timer)
+  43   1        {
+  44   2          io_press_timer++;
+  45   2          if(io_press_timer>=5)
+  46   2          {
+  47   3          
+  48   3            dog_state=0;
+  49   3            Flag_safe=0;
+  50   3            timecount=0;
+  51   3            io_press_timer=0;
+  52   3          }
+  53   2        }
+  54   1        if(dog_state==0)timecount++;
+C51 COMPILER V9.52.0.0   TIME                                                              01/03/2019 08:50:41 PAGE 2   
+
+  55   1        if(dog_state)timecount1++;     
+  56   1        if(dog_state)       // 咬之后
+  57   1        {
+  58   2          timecount=0;
+  59   2          if(timecount1>=15000)     // 20*15000=300000ms计时    
+  60   2          { 
+  61   3            timecount1=0;
+  62   3            dog_state=0;
+  63   3          }
+  64   2        }
+  65   1        if(dog_state==0)         //咬之前
+  66   1        { 
+  67   2          if(timecount>=15000)      //20*15000=150000ms计时
+  68   2          { 
+  69   3            timecount=0;
+  70   3            Flag_safe=1;      
+  71   3          }
+  72   2        }
+  73   1      
+  74   1        ET1=1;
+  75   1        TR1=1;
+  76   1      }
+  77          
+  78          
+  79          
+  80          
+  81          
+  82          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    359    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     14       2
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      2    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
