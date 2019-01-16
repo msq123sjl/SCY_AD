@@ -58,21 +58,21 @@ void main()
 //		ad_road=4;
 		switch (ad_road)
 		{
-			case 0:AD0=LTC1864_Read(ad_road);
+			case 0:AD0=(uint)LTC1864_Read(ad_road);
 					break;
-			case 1:AD1=LTC1864_Read(ad_road);
+			case 1:AD1=(uint)LTC1864_Read(ad_road);
 					break;
-			case 2:AD2=LTC1864_Read(ad_road);
+			case 2:AD2=(uint)LTC1864_Read(ad_road);
 					break;
-			case 3:AD3=LTC1864_Read(ad_road);
+			case 3:AD3=(uint)LTC1864_Read(ad_road);
 					break;
-			case 4:AD4=LTC1864_Read(ad_road);
+			case 4:AD4=(uint)LTC1864_Read(ad_road);
 					break;
-			case 5:AD5=LTC1864_Read(ad_road);
+			case 5:AD5=(uint)LTC1864_Read(ad_road);
 					break;
-			case 6:AD6=LTC1864_Read(ad_road);
+			case 6:AD6=(uint)LTC1864_Read(ad_road);
 					break;
-			case 7:AD7=LTC1864_Read(ad_road);
+			case 7:AD7=(uint)LTC1864_Read(ad_road);
 					break;
 			default:
 				break;
@@ -95,7 +95,7 @@ void main()
 		//memset(tempbuf,0,50);
 		memset(CRC_Buf,0,5);
 		//strcat(sendbuf,"##FC=2;U0=");
-		iLoop  = sprintf(sendbuf,"##FC=2;U0=%u",AD0);
+		iLoop  = sprintf(sendbuf,"##FC=2;Version=1.0,U0=%u",AD0);
 		iLoop += sprintf(sendbuf + iLoop,",U1=%u",AD1);
 		iLoop += sprintf(sendbuf + iLoop,",U2=%u",AD2);
 		iLoop += sprintf(sendbuf + iLoop,",U3=%u",AD3);

@@ -11,8 +11,9 @@ sbit AD_A2 = P3^7;
 #define N 	41			  //中值法采样点个数
 //xdata float real_data=0;
 xdata uchar a1,a2,a3;	//主函数调用	
-xdata uint buff[N],vtemp1,voltage;
-
+//xdata uint buff[N],vtemp1;
+xdata float buff[N],vtemp1;
+xdata float voltage;
 //xdata float buff[N],vtemp1,voltage;
 float k1=0,k2=0,k3=0;
 
@@ -26,7 +27,7 @@ void LTC1864_init()
 
 
 
-uint LTC1864_Read(uchar channel)	//0-7
+float LTC1864_Read(uchar channel)	//0-7
 {
 	uint AD_data=0;
 	uchar i=0;
@@ -53,7 +54,7 @@ uint LTC1864_Read(uchar channel)	//0-7
 		delay1us(1);
 		//real_data=(float)(AD_data)/65535*5  ;
 		//buff[a1] =real_data;
-		buff[a1] = AD_data;
+		buff[a1] = (float)AD_data;
 	}
 	for(a2=0;a2<N-1;a2++)	   //采样值由小到大排列
 	{
@@ -68,10 +69,16 @@ uint LTC1864_Read(uchar channel)	//0-7
 		}		
 	
 	}
-	voltage = (buff[(N-1)/2-3]>>3) + (buff[(N-1)/2-2]>>3) \
+	voltage = (buff[(N-1)/2-3] + buff[(N-1)/2-2] \
+					+ buff[(N-1)/2-1] + buff[(N-1)/2]\
+					+ buff[(N-1)/2+1] + buff[(N-1)/2+2]\
+					+ buff[(N-1)/2+3] + buff[(N-1)/2+4])/(float)8;
+	
+	//voltage = (buff[(N-1)/2] + buff[(N-1)/2+1])>>1;
+	/*voltage = (buff[(N-1)/2-3]>>3) + (buff[(N-1)/2-2]>>3) \
 			+ (buff[(N-1)/2-1]>>3) + (buff[(N-1)/2]>>3)\
 			+ (buff[(N-1)/2+1]>>3) + (buff[(N-1)/2+2]>>3)\
-			+ (buff[(N-1)/2+3]>>3) + (buff[(N-1)/2+4]>>3);
+			+ (buff[(N-1)/2+3]>>3) + (buff[(N-1)/2+4]>>3);*/
 
 ////////////////01-4.99899//////////////////////
 	/*if(voltage<=0.0055)voltage=0;

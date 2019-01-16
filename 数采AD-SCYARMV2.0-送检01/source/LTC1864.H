@@ -4,5 +4,5 @@
 #define uint unsigned int
 //sbit TEST0 = P2^5;
 
-uint LTC1864_Read(uchar channel);	//0-7
+float LTC1864_Read(uchar channel);	//0-7
 #endif
